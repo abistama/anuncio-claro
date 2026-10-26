@@ -1,0 +1,45 @@
+name: Release
+
+# release-please watches main for conventional commits (feat:, fix:, ...),
+# keeps an open "release" PR with the next version and changelog, and on merge
+# cuts the tag and GitHub release. The package job then builds the extension and
+# attaches the installable zip to that release.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  package:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Package extension
+        run: cd dist && zip -r "../anuncio-claro-${{ needs.release-please.outputs.tag_name }}.zip" . && cd ..
+      - name: Attach zip to the release
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+        run: gh release upload "${{ needs.release-please.outputs.tag_name }}" anuncio-claro-*.zip

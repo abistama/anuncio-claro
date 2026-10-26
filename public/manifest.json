@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Anuncio Claro",
+  "version": "0.1.9",
+  "description": "Comprueba si un anuncio de alquiler cumple el artículo 20 del RDL 29/2026 y muestra una ficha clara.",
+  "permissions": ["activeTab", "storage", "sidePanel"],
+  "host_permissions": [
+    "*://*.idealista.com/*",
+    "*://*.fotocasa.es/*",
+    "*://*.habitaclia.com/*",
+    "*://*.pisos.com/*",
+    "*://*.yaencontre.com/*",
+    "*://*.milanuncios.com/*"
+  ],
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "action": {
+    "default_title": "Anuncio Claro"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.idealista.com/inmueble/*", "*://*.idealista.com/alquiler-habitacion/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://*.fotocasa.es/*",
+        "*://*.habitaclia.com/*",
+        "*://*.pisos.com/*",
+        "*://*.yaencontre.com/*",
+        "*://*.milanuncios.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
