@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anuncio-claro.github.io/schema/listing-check/1.0.json",
+  "title": "ListingCheck",
+  "description": "Result of checking one rental listing against RDL 29/2026 art. 20 disclosure rules. Contains no personal data.",
+  "type": "object",
+  "required": ["schemaVersion", "rulesetVersion", "checkedAt", "source", "listing", "checks", "verdict"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "format": "uri" },
+    "schemaVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "rulesetVersion": { "type": "string" },
+    "checkedAt": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "required": ["portal", "url", "listingId"],
+      "additionalProperties": false,
+      "properties": {
+        "portal": { "enum": ["idealista", "fotocasa", "habitaclia", "pisos_com", "yaencontre", "milanuncios"] },
+        "url": { "type": "string", "format": "uri" },
+        "listingId": { "type": "string" },
+        "contentSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "listing": {
+      "type": "object",
+      "required": ["rentalType", "price", "location"],
+      "additionalProperties": false,
+      "properties": {
+        "rentalType": { "enum": ["primary_residence", "temporary", "room"] },
+        "advertiserType": { "enum": ["private", "professional", "unknown"] },
+        "vacationalClaimed": { "type": "boolean", "description": "Ad presents itself as vacacional/temporada; analyzed with a caveat (possible scope evasion)." },
+        "price": { "$ref": "#/$defs/money" },
+        "areaM2": { "type": "number", "exclusiveMinimum": 0 },
+        "location": {
+          "type": "object",
+          "required": ["municipality"],
+          "additionalProperties": false,
+          "properties": {
+            "municipality": { "type": "string" },
+            "ineCode": { "type": "string", "pattern": "^\\d{5}$" },
+            "postalCode": { "type": "string", "pattern": "^\\d{5}$" },
+            "stressedZone": { "type": ["boolean", "null"] }
+          }
+        }
+      }
+    },
+    "checks": { "type": "array", "items": { "$ref": "#/$defs/check" } },
+    "verdict": {
+      "type": "object",
+      "required": ["status"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["pass", "warn", "fail"] },
+        "missingRequired": { "type": "array", "items": { "$ref": "#/$defs/ruleId" } },
+        "uncertain": { "type": "array", "items": { "$ref": "#/$defs/ruleId" } },
+        "priceAboveStatedLimit": { "type": ["boolean", "null"] }
+      }
+    }
+  },
+  "$defs": {
+    "ruleId": { "enum": ["R1", "R2", "R3", "R4", "R5", "R6", "C1"] },
+    "money": {
+      "type": "object",
+      "required": ["amount", "currency", "period"],
+      "additionalProperties": false,
+      "properties": {
+        "amount": { "type": "number", "minimum": 0 },
+        "currency": { "const": "EUR" },
+        "period": { "enum": ["month", "month_per_m2"] }
+      }
+    },
+    "check": {
+      "type": "object",
+      "required": ["ruleId", "field", "required", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "ruleId": { "$ref": "#/$defs/ruleId" },
+        "field": { "enum": ["rent_reference_index", "max_rent", "rent_limit_basis", "previous_rent", "large_landlord", "unit_registration_code", "energy_certificate"] },
+        "required": { "type": "boolean" },
+        "status": { "enum": ["present", "missing", "uncertain", "not_applicable"] },
+        "value": { "description": "money for R1, R2 and R4; boolean for R5; string otherwise" },
+        "evidence": {
+          "type": "object",
+          "required": ["text", "location"],
+          "additionalProperties": false,
+          "properties": {
+            "text": { "type": "string", "maxLength": 280 },
+            "location": { "enum": ["title", "description", "features", "structured_data"] }
+          }
+        },
+        "method": { "enum": ["rule", "model"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "legalBasis": { "type": "string" }
+      }
+    }
+  }
+}
