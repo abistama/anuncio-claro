@@ -29,7 +29,7 @@ const entries = [
 /** @type {import('esbuild').BuildOptions} */
 const common = {
   bundle: true,
-  target: target === 'firefox' ? 'firefox121' : 'chrome120',
+  target: target === 'firefox' ? 'firefox140' : 'chrome120',
   logLevel: 'info',
   sourcemap: true,
   legalComments: 'none',
@@ -45,7 +45,15 @@ function toFirefoxManifest(base) {
   // Gecko MV3 loads the background as a (module) event page, not a service worker.
   m.background = { scripts: ['service-worker.js'], type: 'module' };
   m.browser_specific_settings = {
-    gecko: { id: 'anuncio-claro@herramient.as', strict_min_version: '121.0' },
+    gecko: {
+      id: 'anuncio-claro@herramient.as',
+      // 140 is the first release (and current ESR) with data_collection_permissions.
+      strict_min_version: '140.0',
+      // Everything runs locally; nothing is sent off the device.
+      data_collection_permissions: { required: ['none'] },
+    },
+    // Android only gained data_collection_permissions in 142.
+    gecko_android: { strict_min_version: '142.0' },
   };
   return m;
 }

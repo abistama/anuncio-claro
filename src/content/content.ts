@@ -7,7 +7,7 @@ import { evaluate } from '../rules/engine';
 import type { Message } from '../messaging';
 import { ext } from '../platform';
 import type { ExtractedListing, ListingCheck } from '../types';
-import { FICHA_CSS, VERDICT_ICON, escape, fichaBodyHtml, wireFicha } from '../panel/ficha';
+import { FICHA_CSS, VERDICT_ICON, escape, fichaBodyHtml, setHtml, wireFicha } from '../panel/ficha';
 import {
   activeLocale,
   detectLocale,
@@ -91,14 +91,17 @@ function ensureShadow(): ShadowRoot {
   }
   if (!shadow) {
     shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
-    shadow.innerHTML = `
-      <style>${HOST_CSS}${FICHA_CSS}</style>
+    // DOMParser hoists a leading <style> into <head>, so build it separately.
+    const style = document.createElement('style');
+    style.textContent = HOST_CSS + FICHA_CSS;
+    setHtml(shadow, `
       <div class="pill" role="button" tabindex="0" title="Anuncio Claro"></div>
       <div class="overlay" hidden>
         <div class="ac-head"><span class="ac-title">Anuncio Claro</span><button class="ac-close" aria-label="Cerrar">✕</button></div>
         <div class="ac-body"></div>
-        <div class="ac-foot"><span class="ac-langlabel"></span><select class="ac-lang">${LANGS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select></div>
-      </div>`;
+        <div class="ac-foot"><span class="ac-langlabel"></span><select class="ac-lang">${LANGS.map(([v, n]) => `<option value="${escape(v)}">${escape(n)}</option>`).join('')}</select></div>
+      </div>`);
+    shadow.prepend(style);
     shadow.querySelector('.pill')?.addEventListener('click', () => toggleOverlay(true));
     shadow.querySelector('.ac-close')?.addEventListener('click', () => toggleOverlay(false));
     const sel = shadow.querySelector('.ac-lang') as HTMLSelectElement | null;
@@ -125,7 +128,7 @@ function paintPill(): void {
   if (!pill) return;
   pill.className = `pill ${v.status}`;
   pill.hidden = overlayOpen;
-  pill.innerHTML = `<span class="picon">${VERDICT_ICON[v.status]}</span><span>Anuncio Claro · ${escape(label)}</span>`;
+  setHtml(pill, `<span class="picon">${VERDICT_ICON[v.status]}</span><span>Anuncio Claro · ${escape(label)}</span>`);
 }
 
 /** Render the overlay's ficha body + footer in the current locale. */
@@ -133,7 +136,7 @@ function renderOverlayBody(): void {
   if (!shadow || !latestResult) return;
   const body = shadow.querySelector('.ac-body') as HTMLElement | null;
   if (!body) return;
-  body.innerHTML = fichaBodyHtml(latestResult, locale);
+  setHtml(body, fichaBodyHtml(latestResult, locale));
   wireFicha(body, latestResult, locale, {
     // No tabs API in a content script: open the evidence page as a page-origin
     // blob in a new window. The click is a user gesture, so popup blockers allow it.

@@ -4,3 +4,5 @@ dist-firefox/
 *.log
 .DS_Store
 store/
+*.zip
+*.xpi

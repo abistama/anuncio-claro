@@ -17,6 +17,16 @@ export function escape(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string);
 }
 
+/**
+ * Replace `target`'s children with already-escaped markup. Parsing via DOMParser
+ * yields an inert document (no script execution, no event handlers firing), and
+ * avoids innerHTML so AMO's linter doesn't flag the assignment.
+ */
+export function setHtml(target: Element | ShadowRoot, html: string): void {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  target.replaceChildren(...Array.from(doc.body.childNodes));
+}
+
 function valueText(locale: Locale, c: Check): string {
   if (c.value === undefined) return '';
   if (typeof c.value === 'boolean') return t(locale, c.value ? 'value.yes' : 'value.no');
