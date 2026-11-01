@@ -6,7 +6,11 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "build:firefox": "node scripts/build.mjs --target=firefox",
+    "build:all": "node scripts/build.mjs && node scripts/build.mjs --target=firefox",
     "watch": "node scripts/build.mjs --watch",
+    "watch:firefox": "node scripts/build.mjs --target=firefox --watch",
+    "lint:firefox": "npx --yes addons-linter@7 dist-firefox",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

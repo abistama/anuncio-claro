@@ -1,6 +1,6 @@
 # Anuncio Claro
 
-Chrome extension (Manifest V3, TypeScript) that reads a rental listing and checks
+Browser extension (Manifest V3, TypeScript) for **Chrome and Firefox** that reads a rental listing and checks
 it against the art. 20 disclosure duties of
 **[RDL 29/2026](https://www.boe.es/buscar/pdf/2026/BOE-A-2026-20823-consolidado.pdf)**:
 reference price index, applicable maximum rent, large‑landlord status, energy
@@ -19,8 +19,9 @@ surface, energy grade). All share one pure, DOM‑free rules engine.
 
 ## Features
 
-- Side panel with the normalized summary, foldable per‑field evidence and an
-  EU‑style A–G energy scale.
+- The normalized summary (foldable per‑field evidence, EU‑style A–G energy scale)
+  shown two ways from one renderer: an **in‑page panel** opened by the pill, and the
+  browser's **side panel / sidebar** opened by the toolbar icon.
 - In‑page pill and a toolbar badge (✓ / ! / ✕).
 - Interface in **Español, Català, Euskara, Galego and English**, auto‑detected from
   the browser and overridable in the panel.
@@ -32,23 +33,41 @@ surface, energy grade). All share one pure, DOM‑free rules engine.
 
 ```bash
 npm install          # first run approves esbuild's postinstall
-npm run build        # -> dist/
+npm run build:all    # -> dist/ (Chrome) and dist-firefox/ (Firefox)
 ```
+
+**Chrome**
 
 1. Open `chrome://extensions`, enable **Developer mode**.
 2. **Load unpacked** and select the `dist/` folder.
 3. Open a rental listing on a supported portal. The badge and pill appear. Click
    either, or the toolbar icon, to open the side panel.
 
-`npm run watch` rebuilds on change. Reload the extension card in `chrome://extensions`
-after editing `manifest.json`, `panel.html` or `panel.css`.
+**Firefox**
+
+1. Open `about:debugging#/runtime/this-firefox`.
+2. **Load Temporary Add-on** and select `dist-firefox/manifest.json`.
+3. Open a supported listing. Click the **pill** for the in‑page panel, or the
+   **toolbar icon** to open the same ficha as a Firefox sidebar.
+
+> The **pill opens an in‑page panel** (an overlay drawn on the page), which works
+> identically on Chrome and Firefox. The **toolbar icon** opens the browser's own
+> panel surface: Chrome's side panel, Firefox's sidebar. Firefox can only open
+> that sidebar from the toolbar button (Gecko requires a direct user gesture),
+> which is exactly why the pill uses the in‑page panel instead. Firefox builds
+> target **121+** (module background + `storage.session`).
+
+`npm run watch` (or `npm run watch:firefox`) rebuilds on change. Reload the
+extension after editing `manifest.json`, `panel.html` or `panel.css`.
 
 ## Commands
 
 | Command | What it does |
 | --- | --- |
-| `npm run build` | Bundle the unpacked extension into `dist/` |
-| `npm run watch` | Rebuild bundles on change |
+| `npm run build` | Bundle the Chrome extension into `dist/` |
+| `npm run build:firefox` | Bundle the Firefox extension into `dist-firefox/` |
+| `npm run build:all` | Build both targets |
+| `npm run watch` | Rebuild the Chrome bundle on change |
 | `npm test` | Vitest suite over the pure core |
 | `npm run typecheck` | `tsc --noEmit`, strict |
 
@@ -62,9 +81,10 @@ src/
   rules/         Pure engine (engine.ts), amount normalization, versioned ruleset + stressed-zone table
   i18n/          Message catalogs (es/en/ca/eu/gl) + locale resolution
   export/        Plain-text and evidence-PDF (with QR) builders
-  content/       Content script: extract, evaluate, paint pill (retries for SPA hydration)
-  background/    Service worker: badge, per-tab cache, side panel
-  panel/         Side panel UI
+  content/       Content script: extract, evaluate, paint pill + in-page panel (retries for SPA hydration)
+  background/    Service worker: badge, per-tab cache, side panel / sidebar
+  panel/         Side panel UI + ficha.ts (shared renderer for panel and overlay)
+  platform.ts    Cross-browser shim: chrome/browser namespace + sidePanel/sidebar
 schema/          Published JSON Schema (draft 2020-12)
 ```
 

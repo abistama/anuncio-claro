@@ -72,9 +72,12 @@ function fotocasaPriceSection(doc: Document): string | undefined {
   return text || undefined;
 }
 
-/** City slug from a Fotocasa listing URL: .../vivienda/<city>/<slug>/<id>/d */
+/**
+ * City slug from a Fotocasa listing URL: /<lang>/<rental>/<type>/<city>/<slug>/<id>/d,
+ * e.g. /es/alquiler/vivienda/<city>/..., /en/rental/..., /ca/lloguer/...
+ */
 export function fotocasaCityFromUrl(url: string): string | undefined {
-  const m = /\/vivienda\/([^/?#]+)/i.exec(url);
+  const m = /\/(?:alquiler|rental|lloguer)\/[^/?#]+\/([^/?#]+)\/[^?#]*\d/i.exec(url);
   if (!m) return undefined;
   return m[1]!.replace(/-/g, ' ').replace(/\b\p{L}/gu, (c) => c.toUpperCase());
 }
@@ -103,8 +106,9 @@ function fotocasaArea(doc: Document): string | undefined {
 
 export const fotocasaAdapter = makeAdapter({
   portal: 'fotocasa',
-  // .../es/alquiler/vivienda/<city>/<slug>/<id>  (detail ids are 6+ digits)
-  listingRe: /fotocasa\.es\/[^?#]*?(\d{6,})(?:\/d)?\/?(?:[?#]|$)/i,
+  // Rentals only: /es/alquiler/, /en/rental/ or /ca/lloguer/, then
+  // <type>/<city>/<slug>/<id>/d  (detail ids are 6+ digits)
+  listingRe: /^https?:\/\/(?:www\.)?fotocasa\.es\/(?:es\/alquiler|en\/rental|ca\/lloguer)\/[^?#]*?(\d{6,})(?:\/d)?\/?(?:[?#]|$)/i,
   title: ['.re-DetailHeader-propertyTitle', 'h1[class*="Title"]', 'h1'],
   description: ['.fc-DetailDescription', '.re-DetailDescription', '[class*="Description"] p', '[class*="escription"]'],
   features: ['.re-DetailFeaturesList li', '[class*="Features"] li', '[class*="Feature"] li'],
@@ -117,15 +121,111 @@ export const fotocasaAdapter = makeAdapter({
   extraText: fotocasaPriceSection,
 });
 
+const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+
+/**
+ * Municipality slug from a Habitaclia listing URL, title-cased. Current format is
+ * .../alquiler/<type>/<street>/<district>/<municipality>/<uuid>/d, so it's the
+ * segment right before the UUID. Pure so it can be unit-tested.
+ */
+export function habitacliaCityFromUrl(url: string): string | undefined {
+  const m = new RegExp(`/([^/?#]+)/${UUID}/d\\b`, 'i').exec(url);
+  if (!m) return undefined;
+  return m[1]!.replace(/-/g, ' ').replace(/\b\p{L}/gu, (c) => c.toUpperCase());
+}
+
+/** True for a rent price like "7.500 €/mes" (or "€/month" on the English site). */
+export function isRentPriceText(text: string): boolean {
+  return /^\d[\d.,]*\s*€\s*\/\s*(?:mes|month)$/i.test(text.trim());
+}
+
+// Habitaclia's current frontend uses utility classes only, so we anchor on ids,
+// data-testids, aria-labels and <dt>/<dd> pairs instead.
+
+function habitacliaPrice(doc: Document): string | undefined {
+  const scope = doc.querySelector('[data-testid="listing-detail-content"]') ?? doc;
+  for (const el of Array.from(scope.querySelectorAll('span'))) {
+    const txt = (el.textContent ?? '').replace(/\s+/g, ' ').trim();
+    // The English site writes thousands with a comma ("7,500 €/month").
+    if (isRentPriceText(txt)) return txt.replace(/(\d),(?=\d{3}\b)/g, '$1.');
+  }
+  return undefined;
+}
+
+/** Surface from the quick-facts row: <div aria-label="300 m²">. */
+function habitacliaArea(doc: Document): string | undefined {
+  for (const el of Array.from(doc.querySelectorAll('[aria-label]'))) {
+    const label = el.getAttribute('aria-label') ?? '';
+    if (isAreaText(label)) return label.trim();
+  }
+  return areaFromItems(doc, 'span');
+}
+
+function energySection(doc: Document): Element | null {
+  return doc.querySelector('[data-testid="listing-energy-certificate-section"]');
+}
+
+function leafTexts(root: Element): string[] {
+  return Array.from(root.querySelectorAll('*'))
+    .filter((el) => !el.children.length && el.tagName !== 'svg' && !el.closest('svg, button'))
+    .map((el) => (el.textContent ?? '').replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+}
+
+/** Energy grade: a lone A-G letter inside the energy-certificate section. */
+function habitacliaEnergy(doc: Document): string | undefined {
+  const section = energySection(doc);
+  const letter = section && leafTexts(section).find((t) => /^[A-G]$/i.test(t));
+  return letter ? letter.toUpperCase() : undefined;
+}
+
+/**
+ * Labeled features as "Label: value" lines (the <dt>/<dd> pairs would otherwise
+ * run together), plus the energy-certificate block so "En trámite" is read in an
+ * energy context.
+ */
+function habitacliaFeatureText(doc: Document): string | undefined {
+  const lines: string[] = [];
+  for (const dt of Array.from(doc.querySelectorAll('section[aria-labelledby="listing-features-heading"] dt'))) {
+    const label = (dt.textContent ?? '').replace(/\s+/g, ' ').trim();
+    const value = (dt.nextElementSibling?.textContent ?? '').replace(/\s+/g, ' ').trim();
+    if (label) lines.push(value ? `${label}: ${value}` : label);
+  }
+  // Leaf texts joined with spaces: textContent would glue "energético" + "En trámite".
+  const section = energySection(doc);
+  const energy = section ? leafTexts(section).join(' ') : '';
+  if (energy) lines.push(energy);
+  return lines.join('\n') || undefined;
+}
+
+function habitacliaAdvertiser(doc: Document): string | undefined {
+  const p = Array.from(doc.querySelectorAll('aside p')).find((el) => /anunciant|advertiser/i.test(el.textContent ?? ''));
+  const aside = p?.closest('aside');
+  const name = aside?.getAttribute('aria-label') ?? '';
+  return [p?.textContent?.trim(), name].filter(Boolean).join(' ') || undefined;
+}
+
 export const habitacliaAdapter = makeAdapter({
   portal: 'habitaclia',
-  // .../<slug>-i<id>.htm
-  listingRe: /habitaclia\.com\/[^?#]*?-i(\d+)\.htm/i,
-  title: ['h1.detail-title', 'h1'],
-  description: ['#js-detail-description', '.detail-description', '[class*="description"]'],
-  features: ['.feature-container li', '.detail-feature li', '[class*="feature"] li'],
-  price: ['.detail-price', '[class*="price"]'],
-  advertiser: ['.detail-contact-name', '[class*="advertiser"]'],
+  // Rentals only, per site language: www…/alquiler, catala…/lloguer, english…/rental.
+  // Current: <rental>/<type>/<street>/<district>/<municipality>/<uuid>/d
+  // Legacy:  <rental>-<slug>-i<id>.htm
+  listingRe: new RegExp(
+    '^https?:\\/\\/(?:www\\.habitaclia\\.com\\/alquiler|catala\\.habitaclia\\.com\\/lloguer|english\\.habitaclia\\.com\\/rental)' +
+      `(?:\\/[^?#]*?\\/(${UUID})\\/d\\b|-[^?#]*?-i(\\d+)\\.htm)`,
+    'i',
+  ),
+  title: ['#listing-page-title', 'h1.detail-title', 'h1'],
+  description: ['[data-testid="listing-description-content"]', '#js-detail-description', '.detail-description'],
+  features: ['.feature-container li', '.detail-feature li'],
+  price: ['.detail-price'],
+  advertiser: ['.detail-contact-name'],
+  priceText: habitacliaPrice,
+  areaText: habitacliaArea,
+  energyRating: habitacliaEnergy,
+  extraText: habitacliaFeatureText,
+  municipality: (_doc, url) => habitacliaCityFromUrl(url),
+  advertiserText: habitacliaAdvertiser,
 });
 
 /**
@@ -180,8 +280,8 @@ function pisosArea(doc: Document): string | undefined {
 
 export const pisosComAdapter = makeAdapter({
   portal: 'pisos_com',
-  // .../(alquilar|comprar)/<slug>-<id>_<sub>/  (pisos uses "alquilar"/"comprar")
-  listingRe: /pisos\.com\/(?:alquilar|alquiler|comprar|venta)\/[^?#]*?(\d{6,})/i,
+  // Rentals only: /alquilar/<slug>-<id>_<sub>/
+  listingRe: /^https?:\/\/(?:www\.)?pisos\.com\/alquilar\/[^?#]*?(\d{6,})/i,
   title: ['h1.details__block-title', 'h1'],
   description: ['.description__content', '#description', '[class*="description"]'],
   features: ['.features-summary__item', '.charblock__list li', '.features__list li', '[class*="feature"] li'],
@@ -217,8 +317,8 @@ function yaencontrePrice(doc: Document): string | undefined {
 
 export const yaencontreAdapter = makeAdapter({
   portal: 'yaencontre',
-  // .../(alquiler|venta)/.../<id>
-  listingRe: /yaencontre\.com\/[^?#]*?(\d{6,})\/?(?:[?#]|$)/i,
+  // Rentals only: /alquiler/.../<id>
+  listingRe: /^https?:\/\/(?:www\.)?yaencontre\.com\/alquiler\/[^?#]*?(\d{6,})\/?(?:[?#]|$)/i,
   title: ['h1'],
   description: ['.description', '[class*="description"]', '[class*="Description"]'],
   features: ['.features li', '.characteristics li', '[class*="feature"] li'],
@@ -270,8 +370,8 @@ function milanunciosMunicipality(doc: Document, url: string): string | undefined
 
 export const milanunciosAdapter = makeAdapter({
   portal: 'milanuncios',
-  // .../<slug>-<id>.htm  (mostly free text; description is the key source)
-  listingRe: /milanuncios\.com\/[^?#]*?-(\d+)\.htm/i,
+  // Rentals only: /alquiler<...>/<slug>-<id>.htm  (mostly free text; description is the key source)
+  listingRe: /^https?:\/\/(?:www\.)?milanuncios\.com\/alquiler[^?#]*?-(\d+)\.htm/i,
   title: ['.ma-AdDetail-title', 'h1'],
   description: ['.ma-AdDetail-description', '.ad-description', '[class*="description"]', '[class*="Description"]'],
   features: ['.ma-AdAttributes-item', '.ma-AdTechnicalInfo li', '.tech-info li', '[class*="feature"] li'],

@@ -61,6 +61,13 @@ describe('engine · R5 gran tenedor', () => {
     expect(c.status).toBe('present');
     expect(c.value).toBe(true);
   });
+  it('reads a labeled "Gran Tenedor: No/Sí" answer', () => {
+    const no = byId(evaluate(makeListing({ sources: { description: 'Condición de Gran Tenedor: No.' } })).checks, 'R5');
+    expect(no.status).toBe('present');
+    expect(no.value).toBe(false);
+    const yes = byId(evaluate(makeListing({ sources: { description: 'Condición de Gran Tenedor: Sí.' } })).checks, 'R5');
+    expect(yes.value).toBe(true);
+  });
   it('uncertain on weak "particular" signal', () => {
     expect(byId(evaluate(makeListing({ sources: { description: 'propietario particular' } })).checks, 'R5').status).toBe('uncertain');
   });
@@ -78,6 +85,11 @@ describe('engine · C1 certificado energético', () => {
   it('uncertain when en trámite', () => {
     const c = byId(evaluate(makeListing({ sources: { features: 'Eficiencia energética: en trámite' } })).checks, 'C1');
     expect(c.status).toBe('uncertain');
+  });
+  it('uncertain on the Catalan/English "pending" wording', () => {
+    for (const features of ['Certificat energètic En tràmit', 'Energy certificate Pending']) {
+      expect(byId(evaluate(makeListing({ sources: { features } })).checks, 'C1').status).toBe('uncertain');
+    }
   });
   it('is never required (ámbar, not rojo)', () => {
     expect(byId(evaluate(makeListing()).checks, 'C1').required).toBe(false);
@@ -182,7 +194,7 @@ describe('engine · output shape', () => {
   it('carries ruleset/schema versions and legal basis', () => {
     const r = evaluate(makeListing());
     expect(r.schemaVersion).toMatch(/^\d+\.\d+\.\d+$/);
-    expect(r.rulesetVersion).toBe('2026.10.6');
+    expect(r.rulesetVersion).toBe('2026.11.0');
     expect(byId(r.checks, 'R1').legalBasis).toContain('art. 20');
   });
   it('passes the vacacional-claimed flag through (analyzed, not excluded)', () => {

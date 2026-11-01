@@ -38,7 +38,7 @@ export function classifyScope(fullText: string): ScopeResult {
 
 export function detectAdvertiserType(text: string): AdvertiserType {
   const hay = norm(text);
-  if (/\b(inmobiliaria|agencia|profesional|api\b|real estate)\b/.test(hay)) return 'professional';
+  if (/\b(inmobiliaria|immobiliaria|agencia|profesional|professional|api\b|real estate)\b/.test(hay)) return 'professional';
   if (/\bparticular\b/.test(hay)) return 'private';
   return 'unknown';
 }

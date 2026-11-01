@@ -5,6 +5,8 @@
 // Keys are flat strings; composite keys like `field.max_rent` / `status.missing`
 // map engine enums to labels. t() falls back to Spanish, then to the key itself.
 
+import { ext } from '../platform';
+
 export type Locale = 'es' | 'en' | 'ca' | 'eu' | 'gl';
 export const SUPPORTED_LOCALES: readonly Locale[] = ['es', 'en', 'ca', 'eu', 'gl'];
 export const DEFAULT_LOCALE: Locale = 'es';
@@ -457,7 +459,7 @@ export function detectLocale(): Locale {
 
 // --- Stored language preference --------------------------------------------
 // The user can override the auto-detected language from the panel. 'auto' keeps
-// following the browser. Persisted in chrome.storage.local, shared panel+content.
+// following the browser. Persisted in storage.local, shared panel+content.
 
 export type LocalePref = Locale | 'auto';
 const PREF_KEY = 'localePref';
@@ -468,7 +470,7 @@ function isLocalePref(v: unknown): v is LocalePref {
 
 export async function loadLocalePref(): Promise<LocalePref> {
   try {
-    const data = await chrome.storage.local.get(PREF_KEY);
+    const data = await ext.storage.local.get(PREF_KEY);
     const v = data[PREF_KEY];
     return isLocalePref(v) ? v : 'auto';
   } catch {
@@ -478,7 +480,7 @@ export async function loadLocalePref(): Promise<LocalePref> {
 
 export async function saveLocalePref(pref: LocalePref): Promise<void> {
   try {
-    await chrome.storage.local.set({ [PREF_KEY]: pref });
+    await ext.storage.local.set({ [PREF_KEY]: pref });
   } catch {
     /* storage unavailable (e.g. tests) */
   }
