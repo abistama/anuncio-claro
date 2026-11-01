@@ -1,4 +1,24 @@
-# Anuncio Claro
+<p align="center">
+  <img src="docs/logo.svg" width="128" height="128" alt="Anuncio Claro, by herramient.as">
+</p>
+
+<h1 align="center">Anuncio Claro</h1>
+
+<p align="center">
+  Does this rental listing include the information the law requires?<br>
+  A browser extension that tells you at a glance.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Chrome-MV3-111827?logo=googlechrome&logoColor=white" alt="Chrome MV3">
+  <img src="https://img.shields.io/badge/Firefox-121%2B-111827?logo=firefoxbrowser&logoColor=white" alt="Firefox 121+">
+  <img src="https://img.shields.io/badge/runs-100%25%20local-A78BFA" alt="Runs 100% local">
+  <img src="https://img.shields.io/badge/ES%20%C2%B7%20CA%20%C2%B7%20EU%20%C2%B7%20GL%20%C2%B7%20EN-111827" alt="Languages: es, ca, eu, gl, en">
+</p>
+
+<p align="center">
+  <img src="docs/screenshot-1-revisar.png" alt="A rental listing with the Anuncio Claro side panel showing missing required fields" width="820">
+</p>
 
 Browser extension (Manifest V3, TypeScript) for **Chrome and Firefox** that reads a rental listing and checks
 it against the art. 20 disclosure duties of
@@ -28,6 +48,10 @@ surface, energy grade). All share one pure, DOM‑free rules engine.
 - Export: plain text, JSON (versioned schema), and an **evidence PDF** with the
   listing URL, a scannable QR, timestamp and a SHA‑256 of the analyzed text.
 - One‑click "report an error" that pre‑fills an email with the listing's context.
+
+| Everything in order | Evidence PDF |
+| --- | --- |
+| ![Side panel for a listing that includes every required field](docs/screenshot-2-completo.png) | ![Evidence PDF with the listing QR and the herramient.as credit](docs/screenshot-3-pdf.png) |
 
 ## Install (from source)
 
@@ -70,6 +94,7 @@ extension after editing `manifest.json`, `panel.html` or `panel.css`.
 | `npm run watch` | Rebuild the Chrome bundle on change |
 | `npm test` | Vitest suite over the pure core |
 | `npm run typecheck` | `tsc --noEmit`, strict |
+| `npm run store-assets` | Rasterize the icons and render the store images into `store/` (needs Chrome, `rsvg-convert`, ImageMagick) |
 
 ## How it works
 
@@ -99,8 +124,10 @@ Design notes:
 
 ## Privacy
 
-No accounts and no server. Analysis is local. Saved summaries live in
-`chrome.storage.local`. Host access is limited to the six portal domains.
+No accounts, no server, no analytics, and no network requests. Analysis runs in
+the browser. The result for each tab lives in `storage.session` and is dropped when
+the tab closes; `storage.local` holds only the language preference. Host access is
+limited to the six portal domains.
 
 ## Status and caveats
 
@@ -108,3 +135,16 @@ Pre‑launch. The stressed‑zone table is a seed sample and must be reconciled 
 the official MIVAU / SERPAVI resolutions. Portal selectors are validated against
 real listings but can drift when a portal changes its markup. See the open items in
 the project notes.
+
+## Brand assets
+
+The mark is `public/icons/icon.svg` (manifest icons are rasterized from it) and the
+lockup with "by herramient.as" is `docs/logo.svg`. `npm run store-assets` renders
+the Chrome Web Store screenshots and promo tiles from the real panel and rules
+engine, so they always show what the extension actually displays.
+
+---
+
+<p align="center">
+  <a href="https://herramient.as"><img src="https://herramient.as/favicon.svg" width="16" height="16" alt=""> Creado por <strong>herramient.as</strong></a>
+</p>

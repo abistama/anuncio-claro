@@ -2,9 +2,14 @@
   "manifest_version": 3,
   "name": "Anuncio Claro",
   "version": "0.3.0",
-  "description": "Comprueba si un anuncio de alquiler cumple el artículo 20 del RDL 29/2026 y muestra una ficha clara.",
+  "description": "Comprueba si a un anuncio de alquiler le faltan los datos obligatorios del artículo 20 del RDL 29/2026 y muestra una ficha clara.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": [
-    "activeTab",
     "storage",
     "sidePanel"
   ],
@@ -24,7 +29,12 @@
     "default_path": "panel.html"
   },
   "action": {
-    "default_title": "Anuncio Claro"
+    "default_title": "Anuncio Claro",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+    }
   },
   "content_scripts": [
     {

@@ -56,6 +56,7 @@ async function copyStatic() {
   await writeFile(resolve(dist, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
   await cp(resolve(root, 'src/panel/panel.html'), resolve(dist, 'panel.html'));
   await cp(resolve(root, 'src/panel/panel.css'), resolve(dist, 'panel.css'));
+  await cp(resolve(root, 'public/icons'), resolve(dist, 'icons'), { recursive: true });
   await cp(resolve(root, 'schema'), resolve(dist, 'schema'), { recursive: true });
 }
 
