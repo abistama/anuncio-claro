@@ -3,19 +3,13 @@
 // ficha, the URL, the analysis timestamp and the SHA-256 of the analyzed text
 // (PRD "PDF de evidencia"). A page screenshot is a planned addition.
 
-import qrcode from 'qrcode-generator';
 import type { Check, ListingCheck } from '../types';
 import { t, type Locale } from '../i18n/messages';
+import { styledQrSvg } from './qr';
 
 const DATE_LOCALE: Record<Locale, string> = { es: 'es-ES', en: 'en-GB', ca: 'ca-ES', eu: 'eu-ES', gl: 'gl-ES' };
 
-/** Offline QR (scalable SVG) encoding the listing URL, for the evidence PDF. */
-function qrSvg(text: string): string {
-  const qr = qrcode(0, 'M'); // type 0 = auto-size, error correction M
-  qr.addData(text);
-  qr.make();
-  return qr.createSvgTag({ cellSize: 4, margin: 1, scalable: true });
-}
+const HERRAMIENTAS_URL = 'https://herramient.as';
 
 function escape(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string);
@@ -44,7 +38,8 @@ export function buildEvidenceHtml(result: ListingCheck, locale: Locale): string 
   const loc = result.listing.location;
   const zone = loc.stressedZone === true ? t(locale, 'zone.yes') : loc.stressedZone === false ? t(locale, 'zone.no') : t(locale, 'zone.unknown');
   const when = new Date(result.checkedAt).toLocaleString(DATE_LOCALE[locale]);
-  const qr = qrSvg(result.source.url);
+  const qr = styledQrSvg(result.source.url);
+  const creditQr = styledQrSvg(HERRAMIENTAS_URL, { logo: true });
   const price = result.listing.price ? `${result.listing.price.amount} ${t(locale, 'unit.month')}` : t(locale, 'na');
   const rows = result.checks.map((c) => row(locale, c)).join('');
 
@@ -71,9 +66,13 @@ export function buildEvidenceHtml(result: ListingCheck, locale: Locale): string 
   .meta { font-size: 11px; color: #5b5b66; word-break: break-all; flex: 1; }
   .meta div { margin: 2px 0; }
   .qr { margin: 0; flex: none; text-align: center; width: 120px; }
-  .qr svg { width: 120px; height: 120px; }
+  .qr svg { width: 120px; height: 120px; display: block; }
   .qr figcaption { font-size: 10px; color: #777; margin-top: 4px; }
-  .disclaimer { margin-top: 20px; font-size: 10px; color: #777; }
+  .footer { margin-top: 20px; padding-top: 12px; border-top: 1px solid #e3e3e8; display: flex; gap: 20px; align-items: center; justify-content: space-between; }
+  .disclaimer { margin: 0; font-size: 10px; color: #777; flex: 1; }
+  .credit { margin: 0; flex: none; width: 96px; text-align: center; color: #777; font-size: 10px; text-decoration: none; }
+  .credit svg { width: 96px; height: 96px; display: block; }
+  .credit strong { color: #1b1b1f; }
   @media print { body { margin: 0; } }
 </style>
 </head>
@@ -106,7 +105,10 @@ export function buildEvidenceHtml(result: ListingCheck, locale: Locale): string 
     <figure class="qr">${qr}<figcaption>${escape(t(locale, 'meta.qr'))}</figcaption></figure>
   </div>
 
-  <p class="disclaimer">${escape(t(locale, 'disclaimer'))}</p>
+  <div class="footer">
+    <p class="disclaimer">${escape(t(locale, 'disclaimer'))}</p>
+    <a class="credit" href="${HERRAMIENTAS_URL}">${creditQr}<div>${escape(t(locale, 'footer.madeBy'))} <strong>herramient.as</strong></div></a>
+  </div>
   <script>window.addEventListener('load', () => setTimeout(() => window.print(), 300));</script>
 </body>
 </html>`;

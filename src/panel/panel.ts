@@ -66,9 +66,11 @@ ext.tabs.onActivated.addListener(() => void load());
 // Language selector (persisted override of the auto-detected locale).
 const langSelect = document.getElementById('lang-select') as HTMLSelectElement | null;
 const langLabel = document.getElementById('lang-label');
+const creditLabel = document.getElementById('credit-label');
 
 function applyLangLabel(): void {
   if (langLabel) langLabel.textContent = t(locale, 'settings.language');
+  if (creditLabel) creditLabel.textContent = t(locale, 'footer.madeBy');
 }
 
 langSelect?.addEventListener('change', () => {
