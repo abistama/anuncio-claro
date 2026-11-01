@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/abistama/anuncio-claro/compare/anuncio-claro-v0.2.1...anuncio-claro-v0.3.0) (2026-11-03)
+
+
+### Features
+
+* Add by herramient.as ([7cefdf6](https://github.com/abistama/anuncio-claro/commit/7cefdf6c65eefa46da105304043644333fab3f56))
+
 ## [0.2.1](https://github.com/abistama/anuncio-claro/compare/anuncio-claro-v0.2.0...anuncio-claro-v0.2.1) (2026-11-03)
 
 
