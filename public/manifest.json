@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Anuncio Claro",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Comprueba si un anuncio de alquiler cumple el artículo 20 del RDL 29/2026 y muestra una ficha clara.",
   "permissions": [
     "activeTab",
