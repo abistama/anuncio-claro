@@ -49,7 +49,7 @@ describe('toPlainText · localized', () => {
     const txt = toPlainText(result, { locale: 'en' });
     expect(txt).toContain('[Missing]');
     expect(txt).toContain('Reference price index');
-    expect(txt).toMatch(/COMPLIANT|REVIEW|NON-COMPLIANT/);
+    expect(txt).toMatch(/COMPLIANT|REVIEW|MAY NOT COMPLY/);
   });
   it('renders Catalan labels when asked', () => {
     expect(toPlainText(result, { locale: 'ca' })).toContain('[Absent]');

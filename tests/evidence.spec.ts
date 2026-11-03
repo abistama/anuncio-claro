@@ -25,7 +25,7 @@ describe('buildEvidenceHtml', () => {
   });
   it('localizes the verdict, field and meta labels', () => {
     const en = buildEvidenceHtml(result, 'en');
-    expect(en).toMatch(/COMPLIANT|REVIEW|NON-COMPLIANT/);
+    expect(en).toMatch(/COMPLIANT|REVIEW|MAY NOT COMPLY/);
     expect(en).toContain('Reference price index');
     expect(en).toContain('Checked at');
     expect(en).toContain('Ruleset version');

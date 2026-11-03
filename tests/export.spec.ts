@@ -18,6 +18,6 @@ describe('toPlainText', () => {
     const txt = toPlainText(result);
     expect(txt).toContain('idealista');
     expect(txt).toContain(result.source.url);
-    expect(txt).toMatch(/CUMPLE|REVISAR|NO CUMPLE/);
+    expect(txt).toMatch(/CUMPLE|REVISAR|PUEDE NO CUMPLIR/);
   });
 });
