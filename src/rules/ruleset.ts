@@ -8,7 +8,7 @@
 import type { Field, RuleId } from '../types';
 
 export const SCHEMA_VERSION = '1.1.0';
-export const RULESET_VERSION = '2026.10.6';
+export const RULESET_VERSION = '2026.11.0';
 
 export const LEGAL_BASIS: Partial<Record<RuleId, string>> = {
   R1: 'RDL 29/2026, art. 20',
@@ -120,8 +120,19 @@ export const KEYWORDS = {
     'kwh/m',
     'consumo energetico',
     'consumo energético',
+    'energy certificate',
   ],
-  energyPending: ['en tramite', 'en trámite', 'en tramitacion', 'en tramitación', 'exento', 'exenta'],
+  energyPending: [
+    'en tramite',
+    'en trámite',
+    'en tramitacion',
+    'en tramitación',
+    'exento',
+    'exenta',
+    'en tràmit', // ca (Habitaclia: "Certificat energètic En tràmit")
+    'pending', // en (Habitaclia: "Energy certificate Pending")
+    'exempt',
+  ],
   // "Field is present as a label but the advertiser left it blank." Near a R1/R2/R4
   // keyword with no amount, these mean the datum was NOT provided (-> missing),
   // e.g. Fotocasa's "Índice alquiler: No informado por el anunciante/no aplica".

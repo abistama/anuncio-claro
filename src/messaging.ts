@@ -7,7 +7,6 @@ export type TabState = { kind: 'result'; result: ListingCheck };
 export type Message =
   | { type: 'CHECK_RESULT'; result: ListingCheck }
   | { type: 'NO_LISTING' } // not a listing page / extraction failed
-  | { type: 'OPEN_PANEL' }
   | { type: 'GET_RESULT'; tabId: number }
   | { type: 'RESULT_UPDATED'; tabId: number }
   // Panel -> content script: re-run analysis (worker lost its cache after an MV3

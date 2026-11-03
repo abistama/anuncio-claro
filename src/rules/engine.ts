@@ -103,12 +103,22 @@ function checkR2(listing: ExtractedListing): Check {
   return { ...base, status: 'present', value, evidence: evidenceAt(hit), method: 'rule', confidence: value ? 0.95 : 0.75 };
 }
 
+/** True when a "gran tenedor" hit is a label answered "No" ("Gran tenedor: No"). */
+function labeledNo(hit: Hit): boolean {
+  const window = stripAccents(hit.sourceText.slice(hit.index, hit.index + 40)).toLowerCase();
+  return /^(?:es (?:un )?)?gran(?:de)? ten[ei]dora?\s*[:\-]\s*no\b/.test(window);
+}
+
 function checkR5(listing: ExtractedListing): Check {
   const base = { ruleId: 'R5' as RuleId, field: FIELD_OF.R5, required: true, legalBasis: LEGAL_BASIS.R5 };
   // Order matters: "no es gran tenedor" also contains "gran tenedor".
   const neg = scan(listing, KEYWORDS.largeLandlordNegative);
   if (neg) return { ...base, status: 'present', value: false, evidence: evidenceAt(neg), method: 'rule', confidence: 0.9 };
   const aff = scan(listing, KEYWORDS.largeLandlordAffirmative);
+  // Labeled form, e.g. Habitaclia's "Condición de Gran Tenedor: No."
+  if (aff && labeledNo(aff)) {
+    return { ...base, status: 'present', value: false, evidence: evidenceAt(aff), method: 'rule', confidence: 0.9 };
+  }
   if (aff) return { ...base, status: 'present', value: true, evidence: evidenceAt(aff), method: 'rule', confidence: 0.85 };
   const weak = scan(listing, KEYWORDS.largeLandlordWeak);
   if (weak) return { ...base, status: 'uncertain', evidence: evidenceAt(weak), method: 'rule', confidence: 0.5 };

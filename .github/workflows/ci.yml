@@ -20,9 +20,17 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
-      - run: npm run build
+      - run: npm run build:all
+      # Validate the Firefox build the way addons.mozilla.org will on upload.
+      # Fails only on errors; innerHTML warnings are informational.
+      - run: npx --yes addons-linter@7 dist-firefox
       - uses: actions/upload-artifact@v7
         with:
-          name: anuncio-claro-dist
+          name: anuncio-claro-chrome
           path: dist
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: anuncio-claro-firefox
+          path: dist-firefox
           if-no-files-found: error

@@ -6,7 +6,8 @@ import type { ExtractedListing } from '../types';
 import type { PortalAdapter } from './types';
 import { buildExtractedListing, type RawFields } from './build';
 
-const LISTING_RE = /^https?:\/\/(www\.)?idealista\.com\/(inmueble|alquiler-habitacion)\/(\d+)\/?/;
+// Optional site-language prefix: /inmueble/<id>/, /ca/inmueble/<id>/, /en/inmueble/<id>/, ...
+const LISTING_RE = /^https?:\/\/(www\.)?idealista\.com\/(?:[a-z]{2}\/)?(inmueble|alquiler-habitacion)\/(\d+)\/?/;
 
 function text(doc: Document, selector: string): string {
   return (doc.querySelector(selector)?.textContent ?? '').replace(/\s+/g, ' ').trim();

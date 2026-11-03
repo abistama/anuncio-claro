@@ -37,10 +37,14 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run build
-      - name: Package extension
-        run: cd dist && zip -r "../anuncio-claro-${{ needs.release-please.outputs.tag_name }}.zip" . && cd ..
-      - name: Attach zip to the release
+      - run: npm run build:all
+      - name: Package extensions
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          (cd dist && zip -r "../anuncio-claro-chrome-${TAG}.zip" .)
+          (cd dist-firefox && zip -r "../anuncio-claro-firefox-${TAG}.zip" .)
+      - name: Attach zips to the release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
         run: gh release upload "${{ needs.release-please.outputs.tag_name }}" anuncio-claro-*.zip

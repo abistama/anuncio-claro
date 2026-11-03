@@ -14,7 +14,10 @@ import { metaContent, qsAllText, qsText, readJsonLd } from './dom';
 
 export interface AdapterConfig {
   portal: Portal;
-  /** Matches a single-listing URL; capture group `idGroup` (default 1) is the id. */
+  /**
+   * Matches a single-listing URL; capture group `idGroup` is the id. Without
+   * `idGroup`, the first capture that matched wins (for alternative URL formats).
+   */
   listingRe: RegExp;
   idGroup?: number;
   title: readonly string[];
@@ -31,13 +34,13 @@ export interface AdapterConfig {
   municipality?: (doc: Document, url: string) => string | undefined;
   /** Portal-specific area extractor, used before `area` selectors / JSON-LD. */
   areaText?: (doc: Document) => string | undefined;
+  /** Portal-specific advertiser text, used before `advertiser` selectors. */
+  advertiserText?: (doc: Document) => string | undefined;
   /** Extra structured text to append to features (e.g. a labeled price table). */
   extraText?: (doc: Document) => string | undefined;
 }
 
 export function makeAdapter(config: AdapterConfig): PortalAdapter {
-  const idGroup = config.idGroup ?? 1;
-
   return {
     portal: config.portal,
 
@@ -46,7 +49,9 @@ export function makeAdapter(config: AdapterConfig): PortalAdapter {
     },
 
     listingId(url) {
-      return config.listingRe.exec(url)?.[idGroup] ?? null;
+      const m = config.listingRe.exec(url);
+      if (!m) return null;
+      return (config.idGroup ? m[config.idGroup] : m.slice(1).find(Boolean)) ?? null;
     },
 
     extract(doc, url) {
@@ -68,7 +73,8 @@ export function makeAdapter(config: AdapterConfig): PortalAdapter {
         config.areaText?.(doc) ||
         (config.area ? qsText(doc, config.area) : '') ||
         (ld.area ? `${ld.area} m²` : '');
-      const advertiserText = config.advertiser ? qsText(doc, config.advertiser) : '';
+      const advertiserText =
+        config.advertiserText?.(doc) || (config.advertiser ? qsText(doc, config.advertiser) : '');
 
       const raw: RawFields = {
         portal: config.portal,

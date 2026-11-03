@@ -1,12 +1,13 @@
 // Service worker: keeps the latest state per tab, drives the toolbar badge, and
 // opens the side panel. No network, no storage of page text beyond the result.
 //
-// State lives in chrome.storage.session (not an in-memory Map): an MV3 worker is
+// State lives in storage.session (not an in-memory Map): an MV3 worker is
 // terminated after ~30s idle, which would otherwise drop the cache and leave the
 // panel showing "no listing" even though the page was analyzed.
 
 import type { GetResultResponse, Message, TabState } from '../messaging';
 import type { ListingCheck } from '../types';
+import { ext, openPanel } from '../platform';
 
 const keyFor = (tabId: number): string => `state_${tabId}`;
 
@@ -19,31 +20,31 @@ const BADGE: Record<ListingCheck['verdict']['status'], { text: string; color: st
 function setBadge(tabId: number, state: TabState | null): void {
   if (state?.kind === 'result') {
     const b = BADGE[state.result.verdict.status];
-    void chrome.action.setBadgeBackgroundColor({ tabId, color: b.color });
-    void chrome.action.setBadgeText({ tabId, text: b.text });
+    void ext.action.setBadgeBackgroundColor({ tabId, color: b.color });
+    void ext.action.setBadgeText({ tabId, text: b.text });
     return;
   }
-  void chrome.action.setBadgeText({ tabId, text: '' });
+  void ext.action.setBadgeText({ tabId, text: '' });
 }
 
 async function storeState(tabId: number, state: TabState): Promise<void> {
-  await chrome.storage.session.set({ [keyFor(tabId)]: state });
+  await ext.storage.session.set({ [keyFor(tabId)]: state });
   setBadge(tabId, state);
-  void chrome.runtime.sendMessage({ type: 'RESULT_UPDATED', tabId } satisfies Message).catch(() => {});
+  void ext.runtime.sendMessage({ type: 'RESULT_UPDATED', tabId } satisfies Message).catch(() => {});
 }
 
 async function clearState(tabId: number): Promise<void> {
-  await chrome.storage.session.remove(keyFor(tabId));
+  await ext.storage.session.remove(keyFor(tabId));
   setBadge(tabId, null);
 }
 
 async function getState(tabId: number): Promise<TabState | null> {
   const key = keyFor(tabId);
-  const data = await chrome.storage.session.get(key);
+  const data = await ext.storage.session.get(key);
   return (data[key] as TabState | undefined) ?? null;
 }
 
-chrome.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
+ext.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
   const tabId = sender.tab?.id;
 
   switch (msg.type) {
@@ -55,10 +56,6 @@ chrome.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
       if (tabId !== undefined) void clearState(tabId);
       break;
 
-    case 'OPEN_PANEL':
-      if (tabId !== undefined) void chrome.sidePanel.open({ tabId }).catch(() => {});
-      break;
-
     case 'GET_RESULT':
       void getState(msg.tabId).then((state) => sendResponse({ state } satisfies GetResultResponse));
       return true; // keep the channel open for the async response
@@ -66,8 +63,8 @@ chrome.runtime.onMessage.addListener((msg: Message, sender, sendResponse) => {
   return undefined;
 });
 
-chrome.action.onClicked.addListener((tab) => {
-  if (tab.id !== undefined) void chrome.sidePanel.open({ tabId: tab.id }).catch(() => {});
+ext.action.onClicked.addListener((tab) => {
+  openPanel(tab.id);
 });
 
-chrome.tabs.onRemoved.addListener((tabId) => void chrome.storage.session.remove(keyFor(tabId)));
+ext.tabs.onRemoved.addListener((tabId) => void ext.storage.session.remove(keyFor(tabId)));
