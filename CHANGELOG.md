@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/abistama/anuncio-claro/compare/anuncio-claro-v0.3.0...anuncio-claro-v0.4.0) (2026-11-03)
+
+
+### Features
+
+* firefox preparation ([c2f5565](https://github.com/abistama/anuncio-claro/commit/c2f556539040b48022d058d174a9c4e70522451a))
+* prepare for store ([d77fa77](https://github.com/abistama/anuncio-claro/commit/d77fa77c5f97a378b0b6370d011dde53520c77ef))
+
 ## [0.3.0](https://github.com/abistama/anuncio-claro/compare/anuncio-claro-v0.2.1...anuncio-claro-v0.3.0) (2026-11-03)
 
 
