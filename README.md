@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Chrome-MV3-111827?logo=googlechrome&logoColor=white" alt="Chrome MV3">
-  <img src="https://img.shields.io/badge/Firefox-121%2B-111827?logo=firefoxbrowser&logoColor=white" alt="Firefox 121+">
+  <img src="https://img.shields.io/badge/Firefox-140%2B-111827?logo=firefoxbrowser&logoColor=white" alt="Firefox 140+">
   <img src="https://img.shields.io/badge/runs-100%25%20local-A78BFA" alt="Runs 100% local">
   <img src="https://img.shields.io/badge/ES%20%C2%B7%20CA%20%C2%B7%20EU%20%C2%B7%20GL%20%C2%B7%20EN-111827" alt="Languages: es, ca, eu, gl, en">
 </p>

@@ -6,7 +6,7 @@
 import type { GetResultResponse, Message } from '../messaging';
 import { ext } from '../platform';
 import type { ListingCheck } from '../types';
-import { FICHA_CSS, fichaBodyHtml, wireFicha } from './ficha';
+import { FICHA_CSS, escape, fichaBodyHtml, setHtml, wireFicha } from './ficha';
 import {
   activeLocale,
   detectLocale,
@@ -27,7 +27,7 @@ const app = document.getElementById('app') as HTMLElement;
 let locale: Locale = detectLocale();
 
 function render(result: ListingCheck): void {
-  app.innerHTML = fichaBodyHtml(result, locale);
+  setHtml(app, fichaBodyHtml(result, locale));
   wireFicha(document, result, locale, {
     // Open the evidence page in a new extension tab; it auto-invokes print() so
     // the user can "Save as PDF". Dependency-free and produces a real PDF.
@@ -39,7 +39,7 @@ function render(result: ListingCheck): void {
 }
 
 function renderMessage(key: string): void {
-  app.innerHTML = `<p class="empty">${t(locale, key)}</p>`;
+  setHtml(app, `<p class="empty">${escape(t(locale, key))}</p>`);
 }
 
 async function load(): Promise<void> {

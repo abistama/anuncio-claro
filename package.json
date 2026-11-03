@@ -11,10 +11,12 @@
     "watch": "node scripts/build.mjs --watch",
     "watch:firefox": "node scripts/build.mjs --target=firefox --watch",
     "store-assets": "node scripts/store-assets.mjs",
-    "lint:firefox": "npx --yes addons-linter@7 dist-firefox",
+    "lint:firefox": "npx --yes addons-linter@10 dist-firefox",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "package": "npm run build && node scripts/package.mjs",
+    "package:firefox": "npm run build:firefox && node scripts/package.mjs --target=firefox"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.287",
