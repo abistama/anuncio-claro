@@ -1,6 +1,6 @@
 {
   "name": "anuncio-claro",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Chrome extension that checks rental listings against RDL 29/2026 art. 20 disclosure rules.",
   "type": "module",
