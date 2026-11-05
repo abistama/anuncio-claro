@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Chrome-MV3-111827?logo=googlechrome&logoColor=white" alt="Chrome MV3">
+  <a href="https://chromewebstore.google.com/detail/kejigklbhmihkmfmlfkddclpcchbfpkj"><img src="https://img.shields.io/chrome-web-store/v/kejigklbhmihkmfmlfkddclpcchbfpkj?logo=googlechrome&logoColor=white&label=Chrome%20Web%20Store&color=111827" alt="Chrome Web Store"></a>
   <img src="https://img.shields.io/badge/Firefox-140%2B-111827?logo=firefoxbrowser&logoColor=white" alt="Firefox 140+">
   <img src="https://img.shields.io/badge/runs-100%25%20local-A78BFA" alt="Runs 100% local">
   <img src="https://img.shields.io/badge/ES%20%C2%B7%20CA%20%C2%B7%20EU%20%C2%B7%20GL%20%C2%B7%20EN-111827" alt="Languages: es, ca, eu, gl, en">
@@ -53,7 +53,11 @@ surface, energy grade). All share one pure, DOM‑free rules engine.
 | --- | --- |
 | ![Side panel for a listing that includes every required field](docs/screenshot-2-completo.png) | ![Evidence PDF with the listing QR and the herramient.as credit](docs/screenshot-3-pdf.png) |
 
-## Install (from source)
+## Install
+
+**Chrome:** [Anuncio Claro on the Chrome Web Store](https://chromewebstore.google.com/detail/kejigklbhmihkmfmlfkddclpcchbfpkj).
+
+### From source
 
 ```bash
 npm install          # first run approves esbuild's postinstall
